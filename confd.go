@@ -45,7 +45,7 @@ func main() {
 	var processor template.Processor
 	switch {
 	case config.Watch:
-		processor = template.WatchProcessor(config.TemplateConfig, stopChan, doneChan, errChan)
+		processor = template.WatchProcessor(config.TemplateConfig, stopChan, doneChan, errChan, config.Interval)
 	default:
 		processor = template.IntervalProcessor(config.TemplateConfig, stopChan, doneChan, errChan, config.Interval)
 	}

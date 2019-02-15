@@ -68,11 +68,12 @@ type watchProcessor struct {
 	doneChan chan bool
 	errChan  chan error
 	wg       sync.WaitGroup
+	interval int
 }
 
-func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
+func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
 	var wg sync.WaitGroup
-	return &watchProcessor{config, stopChan, doneChan, errChan, wg}
+	return &watchProcessor{config, stopChan, doneChan, errChan, wg, interval}
 }
 
 func (p *watchProcessor) Process() {
@@ -82,6 +83,21 @@ func (p *watchProcessor) Process() {
 		log.Fatal(err.Error())
 		return
 	}
+
+	if p.interval > 0 {
+		go func() {
+			for {
+				select {
+				case <-p.stopChan:
+					return
+
+				case <-time.After(time.Duration(p.interval) * time.Second):
+					process(ts)
+				}
+			}
+		}()
+	}
+
 	for _, t := range ts {
 		t := t
 		p.wg.Add(1)
